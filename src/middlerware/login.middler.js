@@ -1,11 +1,14 @@
 const { 
   NAME_OR_PASSWORD_IS_NOT_NULL, 
   USER_IS_NULL, 
-  PASSWORD_IS_ERROR 
+  PASSWORD_IS_ERROR, 
+  TOKEN_LOSE_EFFICACY
 } = require("../config/constants")
 const userService = require("../service/user.service")
 const errorEimtHandler = require("../utils/common-error-event")
 const md5password = require("../utils/password-handler")
+const jwt = require('jsonwebtoken')
+const PRIMARY_KEY = 'ieqwidehkabdjikagsdbajgediuqwewqjhgeqweuqiwyeuiwqejabdamnbvxjadguyaweoiuqdakmngdnajskdiwqa'
 
 // 登录校验
 const verifyLogin = async (ctx, next) => {
@@ -23,10 +26,29 @@ const verifyLogin = async (ctx, next) => {
   if(users[0].password !== md5password(password)) {
     return errorEimtHandler(PASSWORD_IS_ERROR ,ctx)
   }
+  ctx.user = users[0]
 
   await next()
 }
 
+// 校验 token 是否过期
+const verifyToken = async (ctx, next) => {
+  const authorization = ctx.headers.authorization
+  if(!authorization) {
+    return ctx.app.emit('error', TOKEN_LOSE_EFFICACY, ctx)
+  }
+  const token = authorization.replace('Bearer ', '')
+  try {
+    const result = jwt.verify(token, PRIMARY_KEY)
+    ctx.user = result
+    await next()
+  } catch (error) {
+    ctx.app.emit('error', TOKEN_LOSE_EFFICACY, ctx)
+  }
+
+}
+
 module.exports = {
-  verifyLogin
+  verifyLogin,
+  verifyToken
 }

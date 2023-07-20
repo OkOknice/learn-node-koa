@@ -3,10 +3,13 @@ const PRIMARY_KEY = 'ieqwidehkabdjikagsdbajgediuqwewqjhgeqweuqiwyeuiwqejabdamnbv
 class LoginControllor {
   async loginSuccess (ctx) {
     const { name, password } = ctx.request.body
+    console.log(ctx.user)
+    const { id } = ctx.user
     // 给用户鉴权
-    const token = jwt.sign( { name, password }, PRIMARY_KEY, {
+    const token = jwt.sign( { id, name, password }, PRIMARY_KEY, {
       expiresIn: 60*60*24,
     })
+    // jwt.verify
     
     // 返回登录成功的信息并携带 token
     ctx.body = {
